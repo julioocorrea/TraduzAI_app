@@ -8,7 +8,7 @@ import 'models/translation_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-  await HiveService.init(); // Inicializa o Hive
+  await HiveService.init();
   runApp(const MeuApp());
 }
 
