@@ -357,7 +357,7 @@ class _PaginaHistoricoState extends State<PaginaHistorico> {
     final traducoes = HiveService.getTranslations();
     setState(() {
       historicoTraducoes = traducoes;
-      _editingIndex = null; // Reseta o índice de edição ao recarregar
+      _editingIndex = null; 
     });
   }
 
