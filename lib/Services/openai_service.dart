@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class OpenAIService {
-  static final String _apiKey = 'e4f569aaaa0e44fda73c8efbf1213b77'; 
-  static const String _baseUrl = 'https://testecopilot-fdc.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2023-05-15'; 
+  static final String _apiKey = '****'; 
+  static const String _baseUrl = '****'; 
 
   static Future<String> translateText({
     required String text,
