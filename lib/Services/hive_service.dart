@@ -20,7 +20,6 @@ class HiveService {
   static Future<void> saveTranslation(Translation translation) async {
     final translations = _box.values.toList();
     
-    // Remove a mais antiga se atingir o limite
     if (translations.length >= _maxTranslations) {
       await _box.deleteAt(0);
     }
