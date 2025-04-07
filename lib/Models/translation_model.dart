@@ -27,11 +27,10 @@ class Translation {
     required this.translatedText,
     required this.sourceLanguage,
     required this.targetLanguage,
-    this.examplePhrase = '', // Inicializado como vazio
+    this.examplePhrase = '', 
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
-  // Método para atualizar o exemplo
   Translation copyWith({String? examplePhrase}) {
     return Translation(
       originalText: originalText,
@@ -51,7 +50,7 @@ class Translation {
       'textoTraduzido': translatedText,
       'idiomaOrigem': sourceLanguage,
       'idiomaDestino': targetLanguage,
-      'exemplo': examplePhrase, // Novo campo no mapa
+      'exemplo': examplePhrase, 
     };
   }
 }
