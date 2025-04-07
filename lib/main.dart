@@ -701,7 +701,7 @@ class _PaginaHistoricoState extends State<PaginaHistorico> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.red),
                     onPressed: () async {
-                      final updated = traducao.copyWith(examplePhrase: ''); // Limpa o exemplo
+                      final updated = traducao.copyWith(examplePhrase: ''); 
                       await HiveService.updateTranslation(index, updated);
                       if (mounted) {
                         setState(() {
