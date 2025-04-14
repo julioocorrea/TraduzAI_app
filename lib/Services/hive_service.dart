@@ -3,7 +3,7 @@ import '../models/translation_model.dart';
 
 class HiveService {
   static const String _boxName = 'translations_box';
-  static const int _maxTranslations = 10;
+  static const int _maxTranslations = 20; // Aumentei o limite padrão
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -20,8 +20,10 @@ class HiveService {
   static Future<void> saveTranslation(Translation translation) async {
     final translations = _box.values.toList();
     
-    if (translations.length >= _maxTranslations) {
+    // Remove as traduções mais antigas se atingir o limite
+    while (translations.length >= _maxTranslations) {
       await _box.deleteAt(0);
+      translations.removeAt(0);
     }
     
     await _box.add(translation);
@@ -46,4 +48,16 @@ class HiveService {
   }
 
   static int get translationsCount => _box.length;
+
+  // Novo método para obter uma tradução por índice
+  static Translation? getTranslation(int index) {
+    final realIndex = (_box.length - 1) - index;
+    if (realIndex >= 0 && realIndex < _box.length) {
+      return _box.getAt(realIndex);
+    }
+    return null;
+  }
+
+  // Novo método para verificar se a box está vazia
+  static bool get isEmpty => _box.isEmpty;
 }

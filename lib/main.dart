@@ -8,7 +8,7 @@ import 'models/translation_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-  await HiveService.init();
+  await HiveService.init(); // Inicializa o Hive
   runApp(const MeuApp());
 }
 
@@ -47,6 +47,7 @@ class _PaginaTradutorState extends State<PaginaTradutor> {
   String idiomaDestino = 'Inglês';
   String textoEntrada = '';
   String textoTraduzido = '';
+  String exemploFrase = ''; // Adicione esta linha
   bool _isTranslating = false;
 
   final Map<String, String> _languageCodes = {
@@ -112,8 +113,8 @@ class _PaginaTradutorState extends State<PaginaTradutor> {
     );
   }
 
-  Widget _construirCampoTextoDividido() {
-    return Container(
+Widget _construirCampoTextoDividido() {
+  return Container(
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -122,21 +123,22 @@ class _PaginaTradutorState extends State<PaginaTradutor> {
           color: Colors.black12,
           blurRadius: 10,
           offset: Offset(0, 4),
-        ), 
-      ], 
-    ), 
+        ),
+      ],
+    ),
     child: Column(
       children: [
+        // Campo de entrada de texto
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0), // Ajuste no padding
             child: TextField(
               onChanged: (texto) => setState(() => textoEntrada = texto),
               decoration: const InputDecoration(
                 hintText: 'Digite a frase aqui...',
                 hintStyle: TextStyle(color: Color(0xFF888888)),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                contentPadding: EdgeInsets.zero, // Removendo padding interno
               ),
               maxLines: null,
               style: const TextStyle(fontSize: 16, color: Color(0xFF333333)),
@@ -145,23 +147,48 @@ class _PaginaTradutorState extends State<PaginaTradutor> {
           ),
         ),
         const Divider(height: 1, color: Color(0xFFE0E0E0)),
+        // Área da tradução
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              alignment: Alignment.topLeft,
-              child: SingleChildScrollView(
-                child: Text(
-                  textoTraduzido.isEmpty ? 'Tradução aparecerá aqui...' : textoTraduzido,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: textoTraduzido.isEmpty 
-                      ? const Color(0xFF888888) 
-                      : const Color(0xFF333333),
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), // Ajuste no padding
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.zero, // Removendo padding interno
+                    alignment: Alignment.topLeft,
+                    child: SingleChildScrollView(
+                      child: Text(
+                        textoTraduzido.isEmpty 
+                          ? 'Tradução aparecerá aqui...' 
+                          : textoTraduzido,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: textoTraduzido.isEmpty 
+                            ? const Color(0xFF888888) 
+                            : const Color(0xFF333333),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                // Exemplo de frase (se existir)
+                if (exemploFrase.isNotEmpty) ...[
+                  const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Exemplo: $exemploFrase',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF555555),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -309,7 +336,7 @@ Future<void> _realizarTraducao() async {
     setState(() => _isTranslating = true);
 
     try {
-      final traducao = await OpenAIService.translateText(
+      final resultado = await OpenAIService.translateText(
         text: textoEntrada,
         sourceLanguage: _languageCodes[idiomaOrigem] ?? idiomaOrigem,
         targetLanguage: _languageCodes[idiomaDestino] ?? idiomaDestino,
@@ -318,13 +345,15 @@ Future<void> _realizarTraducao() async {
       // Salva a tradução no Hive
       await HiveService.saveTranslation(Translation(
         originalText: textoEntrada,
-        translatedText: traducao,
+        translatedText: resultado['translation'] ?? '',
         sourceLanguage: idiomaOrigem,
         targetLanguage: idiomaDestino,
+        examplePhrase: resultado['example'] ?? '',
       ));
 
       setState(() {
-        textoTraduzido = traducao;
+        textoTraduzido = resultado['translation'] ?? '';
+        exemploFrase = resultado['example'] ?? '';
         _isTranslating = false;
       });
     } catch (e) {
@@ -357,7 +386,7 @@ class _PaginaHistoricoState extends State<PaginaHistorico> {
     final traducoes = HiveService.getTranslations();
     setState(() {
       historicoTraducoes = traducoes;
-      _editingIndex = null; 
+      _editingIndex = null; // Reseta o índice de edição ao recarregar
     });
   }
 
@@ -701,7 +730,7 @@ class _PaginaHistoricoState extends State<PaginaHistorico> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.red),
                     onPressed: () async {
-                      final updated = traducao.copyWith(examplePhrase: ''); 
+                      final updated = traducao.copyWith(examplePhrase: ''); // Limpa o exemplo
                       await HiveService.updateTranslation(index, updated);
                       if (mounted) {
                         setState(() {
